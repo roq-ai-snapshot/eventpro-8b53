@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model event {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String                 @db.VarChar(255)
+  start_date             DateTime               @db.Timestamp(6)
+  end_date               DateTime               @db.Timestamp(6)
+  company_id             String                 @db.Uuid
+  event_planning_company event_planning_company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  event_schedule         event_schedule[]
+  event_team             event_team[]
+  event_vendor           event_vendor[]
+  guest                  guest[]
+}
+
+model event_planning_company {
+  id      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String   @db.VarChar(255)
+  user_id String   @db.Uuid
+  event   event[]
+  user    user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  team    team[]
+  vendor  vendor[]
+}
+
+model event_schedule {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  start_time  DateTime @db.Timestamp(6)
+  end_time    DateTime @db.Timestamp(6)
+  description String   @db.VarChar(255)
+  event_id    String   @db.Uuid
+  event       event    @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_team {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id String @db.Uuid
+  team_id  String @db.Uuid
+  event    event  @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  team     team   @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model event_vendor {
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_id  String @db.Uuid
+  vendor_id String @db.Uuid
+  event     event  @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  vendor    vendor @relation(fields: [vendor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model guest {
+  id         String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  first_name String @db.VarChar(255)
+  last_name  String @db.VarChar(255)
+  email      String @db.VarChar(255)
+  event_id   String @db.Uuid
+  event      event  @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model team {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String                 @db.VarChar(255)
+  company_id             String                 @db.Uuid
+  event_team             event_team[]
+  event_planning_company event_planning_company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  team_member            team_member[]
+}
+
+model team_member {
+  id      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id String @db.Uuid
+  team_id String @db.Uuid
+  team    team   @relation(fields: [team_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user    user   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                  String                   @unique @db.VarChar(255)
+  firstName              String?                  @db.VarChar(255)
+  lastName               String?                  @db.VarChar(255)
+  roq_user_id            String                   @db.VarChar(255)
+  tenant_id              String                   @db.VarChar(255)
+  event_planning_company event_planning_company[]
+  team_member            team_member[]
+}
+
+model vendor {
+  id                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                   String                 @db.VarChar(255)
+  contact_email          String                 @db.VarChar(255)
+  company_id             String                 @db.Uuid
+  event_vendor           event_vendor[]
+  event_planning_company event_planning_company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
